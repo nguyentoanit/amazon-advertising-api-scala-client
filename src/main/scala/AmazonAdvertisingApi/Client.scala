@@ -2,20 +2,19 @@ package AmazonAdvertisingApi
 
 import scalaj.http._
 import play.api.libs.json._
+import java.net.URL
 
 class Client (clientId: String, clientSecret: String, region: String, accessToken: String, refreshToken: String, sandbox: Boolean = false) {
-  def buildRequest(method: String, profileId: String = "0", bodies: JsValue = JsValue()): HttpRequest = {
-    val headers = Seq(
-      "Content-Type" -> "application/json",
-      "Authorization" -> s"Bearer ${this.accessToken}",
-      "Amazon-Advertising-API-Scope" -> profileId,
-      "Amazon-Advertising-API-ClientId" -> this.clientId
-    )
-    val request = Http("https://advertising-api-fe.amazon.com/v2").headers(headers)
+  def buildRequest(method: String, url: URL, headers: Seq[(String, String)], bodies: JsValue = JsValue()): HttpRequest = {
+    val request = Http(url.toString).headers(headers)
     method.toUpperCase() match {
       case "GET" => request
       case "POST" => request.postData(Json.stringify(bodies))
     }
+  }
+
+  def doRefreshToken: Unit = {
+
   }
 }
 object Client {
