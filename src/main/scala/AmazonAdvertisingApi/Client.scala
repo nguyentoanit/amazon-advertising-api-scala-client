@@ -11,7 +11,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def setProfileId(profileId: String) = this.profileId = profileId
 
-  def buildRequest(method: HTTPMethod, url: URL, headers: Seq[(String, String)], body: JsValue): HttpRequest = {
+  private def buildRequest(method: HTTPMethod, url: URL, headers: Seq[(String, String)], body: JsValue): HttpRequest = {
     val request = Http(url.toString).headers(headers)
     method match {
       case GET => request
@@ -20,24 +20,25 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
   }
 
   def doRefreshToken = {
-    val headers = Seq()
+    val headers = Seq(
+      "Content-Type" -> "application/json"
+    )
     val body: JsValue = Json.obj(
       "grant_type" -> "refresh_token",
       "refresh_token" -> this.refreshToken,
       "client_id" -> this.clientId,
       "client_secret" -> this.clientSecret
     )
-    val url: URL = new URL("https://api.amazon.com/auth/o2/token")
+    val url: URL = this.region.tokenUrl
     val request = this.buildRequest(POST, url, headers, body).asString
     val response: JsValue = Json.parse(request.body)
 
     request.code match {
       case 200 => this.accessToken = (response \ "access_token").as[String]
-      case _ => {
+      case _ =>
         val error = (response \ "error").as[String]
         val errorDescription = (response \ "error_description").as[String]
         throw new Exception(s"$error: $errorDescription")
-      }
     }
   }
 
