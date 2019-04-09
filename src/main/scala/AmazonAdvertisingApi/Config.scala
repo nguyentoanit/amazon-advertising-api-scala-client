@@ -1,3 +1,3 @@
 package AmazonAdvertisingApi
 
-case class Config(clientId: String, clientSecret: String, region: String, refreshToken: String, sandbox: Boolean)
+case class Config(clientId: String, clientSecret: String, refreshToken: String, region: Region, version: String, sandbox: Boolean)
