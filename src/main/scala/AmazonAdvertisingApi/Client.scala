@@ -31,7 +31,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     val request = this.buildRequest(POST, url, headers, body).asString
     val response: JsValue = Json.parse(request.body)
     (response \ "access_token").asOpt[String] match {
-      case Some(value) => this.accessToken = value
+      case Some(ac) => this.accessToken = ac
       case None =>
         val error = (response \ "error").asOpt[String].getOrElse("Error Description")
         val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Not Found!")
@@ -44,20 +44,18 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
   def getReport(reportId: String): URL = {
     val request = this._operation(s"reports/$reportId").asString
     val response: JsValue = Json.parse(request.body)
-    request.code match {
-      case 200 => {
-        (response \ "status").as[String] match {
-          case "SUCCESS" => this._download(s"reports/$reportId/download")
-          case "IN_PROGRESS" =>
-            // Pause 5 seconds before check status again
-            Thread.sleep(5000)
-            this.getReport(reportId)
-          case _ => throw new Exception("Invalid Response Status!")
-        }
-      }
-      case _ =>
-        val error = (response \ "error").as[String]
-        val errorDescription = (response \ "error_description").as[String]
+    (response \ "status").asOpt[String] match {
+      case Some(status) if status == "SUCCESS" => this._download(s"reports/$reportId/download")
+      case Some(status) if status == "IN_PROGRESS" =>
+        // Pause 5 seconds before check status again
+        Thread.sleep(5000)
+        this.getReport(reportId)
+      case Some(status) if status == "FAILURE" =>
+        val statusDetails = (response \ "statusDetails").asOpt[String].getOrElse("Description is Not Found!")
+        throw new Exception(s"$status: $statusDetails")
+      case None =>
+        val error = (response \ "error").asOpt[String].getOrElse("Error")
+        val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Description is Not Found!")
         throw new Exception(s"$error: $errorDescription")
     }
   }
