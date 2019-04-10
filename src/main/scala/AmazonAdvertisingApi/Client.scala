@@ -42,13 +42,17 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     }
   }
 
-  def _operation(path: String, method: HTTPMethod = GET, body: JsValue): HttpRequest = {
+  def requestReport(reportType: String, data: JsValue): HttpRequest = this._operation(reportType, POST, data)
+
+  def _operation(path: String, method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
     var headers: Seq[(String, String)] = Seq(
       "Content-Type" -> "application/json",
       "Authorization" -> s"Bearer ${this.accessToken}",
       "Amazon-Advertising-API-ClientId" -> this.clientId
     )
+
     if (!this.profileId.trim.isEmpty) headers = headers :+ ("Amazon-Advertising-API-Scope" -> this.profileId)
+    else throw new Exception("Profile ID is not found!")
 
     val url = new URL(this.domain + this.version + path)
     this.buildRequest(method, url, headers, body)
