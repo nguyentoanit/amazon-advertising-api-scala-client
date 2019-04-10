@@ -48,12 +48,12 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     request.code match {
       case 200 => {
         (response \ "status").as[String] match {
-          case "SUCCESS" => this._download(s"/reports/$reportId/download")
+          case "SUCCESS" => this._download(s"reports/$reportId/download")
           case "IN_PROGRESS" =>
             // Pause 5 seconds before check status again
             Thread.sleep(5000)
             this.getReport(reportId)
-          case _ => throw new Exception("Invalid Response Status!s")
+          case _ => throw new Exception("Invalid Response Status!")
         }
       }
       case _ =>
@@ -65,7 +65,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def _download(path: String): URL = {
     val request = this._operation(path).asString
-    val downloadLink: String = request.header("Location").getOrElse("")
+    val downloadLink: String = request.header("Location").get
     new URL(downloadLink)
   }
 
