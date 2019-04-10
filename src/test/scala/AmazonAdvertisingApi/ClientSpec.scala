@@ -8,7 +8,7 @@ import org.specs2.mutable._
 import play.api.libs.json.{JsValue, Json}
 
 class ClientSpec extends Specification {
-  val config = Config(
+  val config: Config = Config(
     "amzn1.application-oa2-client.xxxx",
     "xxxx",
     "Atzr|xxx",
@@ -16,7 +16,7 @@ class ClientSpec extends Specification {
     "v2",
     true
   )
-  val client = Client(config)
+  val client: Client = Client(config)
   client.profileId = "123"
   val reportDate: String = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
   val data: JsValue = Json.obj(
