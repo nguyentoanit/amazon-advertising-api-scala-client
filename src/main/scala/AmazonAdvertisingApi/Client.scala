@@ -30,12 +30,11 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     val url: URL = this.region.tokenUrl
     val request = this.buildRequest(POST, url, headers, body).asString
     val response: JsValue = Json.parse(request.body)
-
-    request.code match {
-      case 200 => this.accessToken = (response \ "access_token").as[String]
-      case _ =>
-        val error = (response \ "error").as[String]
-        val errorDescription = (response \ "error_description").as[String]
+    (response \ "access_token").asOpt[String] match {
+      case Some(value) => this.accessToken = value
+      case None =>
+        val error = (response \ "error").asOpt[String].getOrElse("Error Description")
+        val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Not Found!")
         throw new Exception(s"$error: $errorDescription")
     }
   }
