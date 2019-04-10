@@ -5,11 +5,9 @@ import play.api.libs.json._
 import java.net.URL
 
 class Client (clientId: String, clientSecret: String, refreshToken: String, region: Region, version: String, sandbox: Boolean = false) {
-  private var accessToken: String = ""
-  private var profileId: String = ""
-  private val domain: String = if (sandbox) this.region.sandbox.toString else this.region.production.toString
-
-  def setProfileId(profileId: String) = this.profileId = profileId
+  var accessToken: String = ""
+  var profileId: String = ""
+  val domain: String = if (sandbox) this.region.sandbox.toString else this.region.production.toString
 
   private def buildRequest(method: HTTPMethod, url: URL, headers: Seq[(String, String)], body: JsValue): HttpRequest = {
     val request = Http(url.toString).headers(headers)
@@ -42,7 +40,34 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     }
   }
 
-  def requestReport(reportType: String, data: JsValue): HttpRequest = this._operation(reportType, POST, data)
+  def requestReport(reportType: String, data: JsValue): HttpRequest = this._operation(reportType + "/report", POST, data)
+
+  def getReport(reportId: String): URL = {
+    val request = this._operation(s"reports/$reportId").asString
+    val response: JsValue = Json.parse(request.body)
+    request.code match {
+      case 200 => {
+        (response \ "status").as[String] match {
+          case "SUCCESS" => this._download(s"/reports/$reportId/download")
+          case "IN_PROGRESS" =>
+            // Pause 5 seconds before check status again
+            Thread.sleep(5000)
+            this.getReport(reportId)
+          case _ => throw new Exception("Invalid Response Status!s")
+        }
+      }
+      case _ =>
+        val error = (response \ "error").as[String]
+        val errorDescription = (response \ "error_description").as[String]
+        throw new Exception(s"$error: $errorDescription")
+    }
+  }
+
+  def _download(path: String): URL = {
+    val request = this._operation(path).asString
+    val downloadLink: String = request.header("Location").getOrElse("")
+    new URL(downloadLink)
+  }
 
   def _operation(path: String, method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
     var headers: Seq[(String, String)] = Seq(
@@ -54,7 +79,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     if (!this.profileId.trim.isEmpty) headers = headers :+ ("Amazon-Advertising-API-Scope" -> this.profileId)
     else throw new Exception("Profile ID is not found!")
 
-    val url = new URL(this.domain + this.version + path)
+    val url = new URL(this.domain + "/" + this.version + "/" + path)
     this.buildRequest(method, url, headers, body)
   }
 }
