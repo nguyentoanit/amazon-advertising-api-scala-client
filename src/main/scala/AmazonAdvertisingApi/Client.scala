@@ -4,6 +4,9 @@ import scalaj.http._
 import play.api.libs.json._
 import java.net.URL
 
+import AmazonAdvertisingApi.exceptions.ReportException
+import javax.naming.AuthenticationException
+
 class Client (clientId: String, clientSecret: String, refreshToken: String, region: Region, version: String, sandbox: Boolean = false) {
   var accessToken: String = ""
   val domain: String = if (sandbox) this.region.sandbox.toString else this.region.production.toString
@@ -34,7 +37,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
       case None =>
         val error = (response \ "error").asOpt[String].getOrElse("Error Description")
         val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Not Found!")
-        throw new Exception(s"$error: $errorDescription")
+        throw new AuthenticationException(s"$error: $errorDescription")
     }
   }
 
@@ -52,7 +55,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
       case None =>
         val error = (response \ "code").asOpt[String].getOrElse("Error")
         val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
-        throw new Exception(s"$error: $details")
+        throw new ReportException(s"$error: $details")
     }
   }
 
@@ -60,7 +63,7 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     val request = this._operation(path, profileId).asString
     request.header("Location") match {
       case Some(value) => new URL(value)
-      case None => throw new Exception("Cannot get Location!")
+      case None => throw new ReportException("Cannot get Location!")
     }
   }
 
