@@ -40,26 +40,23 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def requestReport(reportType: String, profileId: String, data: JsValue): HttpRequest = this._operation(reportType + "/report", profileId, POST, data)
 
-  def getReport(reportId: String, profileId: String): URL = {
+  def getReportStatus(reportId: String, profileId: String): ReportStatus = {
     val request = this._operation(s"reports/$reportId", profileId).asString
     val response: JsValue = Json.parse(request.body)
+    val statusDetails: String = (response \ "statusDetails").asOpt[String].getOrElse("Description is Not Found!")
+
     (response \ "status").asOpt[String] match {
-      case Some(status) if status == "SUCCESS" => this._download(s"reports/$reportId/download", profileId)
-      case Some(status) if status == "IN_PROGRESS" =>
-        // Pause 5 seconds before check status again
-        Thread.sleep(5000)
-        this.getReport(reportId, profileId)
-      case Some(status) if status == "FAILURE" =>
-        val statusDetails = (response \ "statusDetails").asOpt[String].getOrElse("Description is Not Found!")
-        throw new Exception(s"$status: $statusDetails")
+      case Some(status) if status == "SUCCESS" => ReportSuccess(reportId, status, statusDetails)
+      case Some(status) if status == "IN_PROGRESS" => ReportInProgress(reportId, status, statusDetails)
+      case Some(status) if status == "FAILURE" => ReportFailure(reportId, status, statusDetails)
       case None =>
-        val error = (response \ "error").asOpt[String].getOrElse("Error")
-        val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Description is Not Found!")
-        throw new Exception(s"$error: $errorDescription")
+        val error = (response \ "code").asOpt[String].getOrElse("Error")
+        val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
+        throw new Exception(s"$error: $details")
     }
   }
 
-  private def _download(path: String, profileId: String): URL = {
+  def getReportURL(path: String, profileId: String): URL = {
     val request = this._operation(path, profileId).asString
     val downloadLink: String = request.header("Location").get
     new URL(downloadLink)
