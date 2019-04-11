@@ -61,9 +61,14 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def getReportURL(path: String, profileId: String): URL = {
     val request = this._operation(path, profileId).asString
+    val response: JsValue = Json.parse(request.body)
     request.header("Location") match {
       case Some(value) => new URL(value)
-      case None => throw new ReportException("Cannot get Location!")
+      case None => {
+        val error = (response \ "code").asOpt[String].getOrElse("Error")
+        val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
+        throw new ReportException(s"$error: $details")
+      }
     }
   }
 
