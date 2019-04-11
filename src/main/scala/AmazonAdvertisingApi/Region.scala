@@ -2,7 +2,7 @@ package AmazonAdvertisingApi
 
 import java.net.URL
 
-abstract class Region {
+sealed abstract class Region {
   val production: URL
   val sandbox: URL
   val tokenUrl: URL

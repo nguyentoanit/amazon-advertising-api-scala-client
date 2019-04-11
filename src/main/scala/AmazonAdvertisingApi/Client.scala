@@ -60,13 +60,13 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     }
   }
 
-  def _download(path: String): URL = {
+  private def _download(path: String): URL = {
     val request = this._operation(path).asString
     val downloadLink: String = request.header("Location").get
     new URL(downloadLink)
   }
 
-  def _operation(path: String, method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
+  private def _operation(path: String, method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
     var headers: Seq[(String, String)] = Seq(
       "Content-Type" -> "application/json",
       "Authorization" -> s"Bearer ${this.accessToken}",

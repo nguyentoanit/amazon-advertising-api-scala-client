@@ -1,5 +1,5 @@
 package AmazonAdvertisingApi
 
-class HTTPMethod
+sealed abstract class HTTPMethod
 case object GET extends HTTPMethod
 case object POST extends HTTPMethod
