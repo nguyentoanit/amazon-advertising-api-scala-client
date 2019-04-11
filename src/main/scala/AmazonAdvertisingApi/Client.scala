@@ -58,8 +58,10 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def getReportURL(path: String, profileId: String): URL = {
     val request = this._operation(path, profileId).asString
-    val downloadLink: String = request.header("Location").get
-    new URL(downloadLink)
+    request.header("Location") match {
+      case Some(value) => new URL(value)
+      case None => throw new Exception("Cannot get Location!")
+    }
   }
 
   private def _operation(path: String, profileId: String = "", method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
