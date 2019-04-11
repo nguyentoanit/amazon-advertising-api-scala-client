@@ -4,8 +4,9 @@ import scalaj.http._
 import play.api.libs.json._
 import java.net.URL
 
-import AmazonAdvertisingApi.exceptions.ReportException
+import AmazonAdvertisingApi.exceptions.{ReportException, JsonParseException}
 import javax.naming.AuthenticationException
+import scala.util.{Try, Success, Failure}
 
 class Client (clientId: String, clientSecret: String, refreshToken: String, region: Region, version: String, sandbox: Boolean = false) {
   var accessToken: String = ""
@@ -30,14 +31,18 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
       "client_secret" -> this.clientSecret
     )
     val url: URL = this.region.tokenUrl
-    val request = this.buildRequest(POST, url, headers, body).asString
-    val response: JsValue = Json.parse(request.body)
-    (response \ "access_token").asOpt[String] match {
-      case Some(ac) => this.accessToken = ac
-      case None =>
-        val error = (response \ "error").asOpt[String].getOrElse("Error Description")
-        val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Not Found!")
-        throw new AuthenticationException(s"$error: $errorDescription")
+    val request: HttpResponse[String] = this.buildRequest(POST, url, headers, body).asString
+
+    Try(Json.parse(request.body)) match {
+      case Success(response) =>
+        (response \ "access_token").asOpt[String] match {
+          case Some(aT) => this.accessToken = aT
+          case None =>
+            val error = (response \ "error").asOpt[String].getOrElse("Error Description")
+            val errorDescription = (response \ "error_description").asOpt[String].getOrElse("Not Found!")
+            throw new AuthenticationException(s"$error: $errorDescription")
+        }
+      case Failure(_) => throw new JsonParseException(s"Cannot Json.parse: ${request.body}")
     }
   }
 
@@ -45,29 +50,36 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
 
   def getReportStatus(reportId: String, profileId: String): ReportStatus = {
     val request = this._operation(s"reports/$reportId", profileId).asString
-    val response: JsValue = Json.parse(request.body)
-    val statusDetails: String = (response \ "statusDetails").asOpt[String].getOrElse("Description is Not Found!")
-
-    (response \ "status").asOpt[String] match {
-      case Some(status) if status == "SUCCESS" => ReportSuccess(reportId, status, statusDetails)
-      case Some(status) if status == "IN_PROGRESS" => ReportInProgress(reportId, status, statusDetails)
-      case Some(status) if status == "FAILURE" => ReportFailure(reportId, status, statusDetails)
-      case None =>
-        val error = (response \ "code").asOpt[String].getOrElse("Error")
-        val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
-        throw new ReportException(s"$error: $details")
+    Try(Json.parse(request.body)) match {
+      case Success(response) =>
+        val statusDetails: String = (response \ "statusDetails").asOpt[String].getOrElse("Description is Not Found!")
+        (response \ "status").asOpt[String] match {
+          case Some(status) if status == "SUCCESS" => ReportSuccess(reportId, status, statusDetails)
+          case Some(status) if status == "IN_PROGRESS" => ReportInProgress(reportId, status, statusDetails)
+          case Some(status) if status == "FAILURE" => ReportFailure(reportId, status, statusDetails)
+          case None =>
+            val error = (response \ "code").asOpt[String].getOrElse("Error")
+            val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
+            throw new ReportException(s"$error: $details")
+        }
+      case Failure(_) => throw new JsonParseException(s"Cannot Json.parse: ${request.body}")
     }
+
   }
 
   def getReportURL(path: String, profileId: String): URL = {
     val request = this._operation(path, profileId).asString
-    val response: JsValue = Json.parse(request.body)
     request.header("Location") match {
       case Some(value) => new URL(value)
       case None => {
-        val error = (response \ "code").asOpt[String].getOrElse("Error")
-        val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
-        throw new ReportException(s"$error: $details")
+        Try(Json.parse(request.body)) match {
+          case Success(response) => {
+            val error = (response \ "code").asOpt[String].getOrElse("Error")
+            val details = (response \ "details").asOpt[String].getOrElse("Description is Not Found!")
+            throw new ReportException(s"$error: $details")
+          }
+          case Failure(_) => throw new JsonParseException(s"Cannot Json.parse: ${request.body}")
+        }
       }
     }
   }

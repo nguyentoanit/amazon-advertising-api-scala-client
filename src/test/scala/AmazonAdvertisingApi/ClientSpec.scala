@@ -16,8 +16,8 @@ class ClientSpec extends Specification {
     "v2",
     true
   )
+  val profileId: String = "123"
   val client: Client = Client(config)
-  client.profileId = "123"
   val reportDate: String = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
   val data: JsValue = Json.obj(
     "reportDate" -> reportDate,
@@ -26,30 +26,49 @@ class ClientSpec extends Specification {
 
   "doRefreshToken" should  {
     "return new access token when Authentication is true" in {
-      client.accessToken must beEmpty
+      client.accessToken.trim must beEmpty
       client.doRefreshToken
-      client.accessToken.length must beGreaterThan(0)
+      client.accessToken.trim.length must beGreaterThan(0)
     }
   }
 
   "requestReport" should {
     "return HTTPRequest contain a reportID" in {
       client.doRefreshToken
-      val response = client.requestReport("sp/campaigns", data).asString.body
+      val response = client.requestReport("sp/campaigns", profileId, data).asString.body
       val reportId: String = (Json.parse(response) \ "reportId").as[String]
       println(reportId)
       reportId must startWith("amzn1.clicksAPI")
     }
   }
 
-  "getReport" should {
-    "return Download report link" in {
+  "getReportStatus" should {
+    "return instance of ReportStatus" in {
       client.doRefreshToken
-      val response = client.requestReport("sp/campaigns", data).asString.body
+      val response = client.requestReport("sp/campaigns", profileId, data).asString.body
       val reportId: String = (Json.parse(response) \ "reportId").as[String]
-      val reportLink: URL = client.getReport(reportId)
-      println(reportLink)
-      reportLink.toString must contain("s3.amazonaws.com")
+      val reportStatus = client.getReportStatus(reportId, profileId)
+      reportStatus must beAnInstanceOf[ReportStatus]
+    }
+  }
+
+  "getReportURL" should {
+    "return URL when request valid reportID" in {
+      def getReport(reportId: String, profileId: String): URL = {
+        val reportStatus = client.getReportStatus(reportId, profileId)
+        Thread.sleep(5000)
+        reportStatus match {
+          case ReportSuccess(_,_,_) => client.getReportURL(s"reports/$reportId/download", profileId)
+          case ReportFailure(_,status,detail) => throw new Exception(s"$status: $detail")
+          case ReportInProgress(_,_,_) => getReport(reportId, profileId)
+        }
+      }
+      client.doRefreshToken
+      val response = client.requestReport("sp/campaigns", profileId, data).asString.body
+      val reportId: String = (Json.parse(response) \ "reportId").as[String]
+      val url = getReport(reportId, profileId)
+      println(url)
+      url must beAnInstanceOf[URL]
     }
   }
 }

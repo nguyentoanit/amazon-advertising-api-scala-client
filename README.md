@@ -24,11 +24,6 @@ val client: Client = Client(config)
 client.doRefreshToken
 ```
 
-#### Set profile Id
-```
-client.profileId = "123"
-```
-
 #### Request a report
 ```
 import play.api.libs.json.{JsValue, Json}
@@ -40,24 +35,21 @@ val data: JsValue = Json.obj(
     "reportDate" -> reportDate,
     "metrics" -> "campaignName,campaignId"
 )
+val profileId: String = "123"
+
+val response = client.requestReport("sp/campaigns", profileId, data).asString.body
 ```
 
-#### Get a report
+#### Get report status
 ```
-import play.api.libs.json.{JsValue, Json}
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
-val reportDate: String = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-val data: JsValue = Json.obj(
-    "reportDate" -> reportDate,
-    "metrics" -> "campaignName,campaignId"
-)
-
-val response = client.requestReport("sp/campaigns", data).asString.body
-val reportId: String = (Json.parse(response) \ "reportId").as[String]
-val reportLink: URL = client.getReport(reportId)
+client.getReportStatus(reportId, profileId)
 ```
+
+#### Get report URL
+```
+client.getReportURL(s"reports/$reportId/download", profileId)
+```
+
 
 ## Documentation
 - [API Reference](https://advertising.amazon.com/API/docs/v2/guides/get_started)
