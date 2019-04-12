@@ -1,0 +1,21 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.nguyentoanit.amazon.advertising</groupId>
+  <artifactId>advertising-api</artifactId>
+  <version>0.1</version>
+  <packaging>jar</packaging>
+  <repositories>
+    <repository>
+      <id>osshr</id>
+      <name>OSSHR Staging</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+
+  <scm>
+    <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
+    <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
+    <url>https://github.com/dexecutor/dependent-tasks-executor</url>
+    <tag>advertising-api-0.1</tag>
+  </scm>
+</project>
