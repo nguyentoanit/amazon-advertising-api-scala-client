@@ -4,13 +4,13 @@
   <artifactId>advertising-api</artifactId>
   <version>0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <repositories>
+  <!-- <repositories>
     <repository>
       <id>osshr</id>
       <name>OSSHR Staging</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
-  </repositories>
+  </repositories> -->
 
   <scm>
     <connection>scm:git:git://github.com/nguyentoanit/amazon-advertising-api-scala-sdk.git</connection>
