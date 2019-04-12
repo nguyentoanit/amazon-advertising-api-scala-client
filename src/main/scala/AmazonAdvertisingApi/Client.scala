@@ -84,6 +84,8 @@ class Client (clientId: String, clientSecret: String, refreshToken: String, regi
     }
   }
 
+  def listProfiles(): HttpRequest = this._operation("profiles")
+
   private def _operation(path: String, profileId: String = "", method: HTTPMethod = GET, body: JsValue = Json.obj()): HttpRequest = {
     var headers: Seq[(String, String)] = Seq(
       "Content-Type" -> "application/json",
