@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nguyentoanit.amazon.advertising</groupId>
   <artifactId>advertising-api</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2</version>
   <packaging>jar</packaging>
   <!-- <repositories>
     <repository>
@@ -16,6 +16,6 @@
     <connection>scm:git:git://github.com/nguyentoanit/amazon-advertising-api-scala-sdk.git</connection>
     <developerConnection>scm:git:git@github.com:nguyentoanit/amazon-advertising-api-scala-sdk.git</developerConnection>
     <url>https://github.com/nguyentoanit/amazon-advertising-api-scala-sdk</url>
-    <tag>advertising-api-0.1</tag>
+    <tag>advertising-api-0.2</tag>
   </scm>
 </project>
