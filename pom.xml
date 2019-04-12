@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nguyentoanit.amazon.advertising</groupId>
   <artifactId>advertising-api</artifactId>
-  <version>0.1</version>
+  <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <repositories>
     <repository>
@@ -13,9 +13,9 @@
   </repositories>
 
   <scm>
-    <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
-    <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
-    <url>https://github.com/dexecutor/dependent-tasks-executor</url>
+    <connection>scm:git:git://github.com/nguyentoanit/amazon-advertising-api-scala-sdk.git</connection>
+    <developerConnection>scm:git:git@github.com:nguyentoanit/amazon-advertising-api-scala-sdk.git</developerConnection>
+    <url>https://github.com/nguyentoanit/amazon-advertising-api-scala-sdk</url>
     <tag>advertising-api-0.1</tag>
   </scm>
 </project>
