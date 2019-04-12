@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nguyentoanit.amazon.advertising</groupId>
   <artifactId>advertising-api</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
   <repositories>
     <repository>
